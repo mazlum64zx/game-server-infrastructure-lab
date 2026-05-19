@@ -351,7 +351,7 @@ ssh -L 5900:127.0.0.1:5900 mazlum@192.168.0.216
 
 Purpose:
 Forward the VM graphical display securely to the local PC.
-
+![SSH VNC Tunnel](2.png)
 ---
 
 # SSH Tunnel Explanation
@@ -396,6 +396,8 @@ Selected:
 - Windows 10 Pro
 - Offline account setup
 
+![Windows Installation](3.png)
+
 Reason:
 Better suited for:
 - virtualization labs
@@ -421,6 +423,7 @@ Better suited for:
 ---
 
 # Current Infrastructure Status
+![Homelab Infrastructure](4.png)
 
 ```text
 Ubuntu Homelab Server
@@ -431,7 +434,7 @@ Ubuntu Homelab Server
 ├── VNC Remote Access
 └── SSH Management
 ```
-
+![Windows Boot Installation](5.png)
 ---
 
 # Next Phase
