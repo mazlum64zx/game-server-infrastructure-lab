@@ -216,12 +216,6 @@ ssh mazlum@ssh.mazlum.uk
 
 ---
 
-## Successful Native SSH Session
-
-![Native SSH](screenshots/native-ssh-success.png)
-
----
-
 # Remote VNC Access over Cloudflare
 
 After native SSH was working,
@@ -334,12 +328,6 @@ successful remote graphical access to the Windows VM.
 
 ---
 
-## Successful Remote VNC Session
-
-![Remote VNC](screenshots/remote-vnc-over-cloudflare.png)
-
----
-
 # Final Remote Workflow
 
 ## 1. Start VM
@@ -365,6 +353,23 @@ Target:
 ```text
 127.0.0.1:5900
 ```
+
+---
+
+# Successful Remote VNC Access
+
+After:
+- Cloudflare native SSH setup
+- SSH tunnel forwarding
+- TigerVNC configuration
+
+the Windows virtual machine could successfully be accessed remotely from outside the home network.
+
+---
+
+## Remote Windows VM Session
+
+![Remote VNC](screenshots/native-ssh-success.png)
 
 ---
 
