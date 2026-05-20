@@ -74,7 +74,7 @@ The English version was intentionally selected to improve familiarity with inter
 
 Inside the SQL Server Installation Center, a new standalone SQL installation was selected.
 
-## SQL Installation Center
+## SQL Server Installation Wizard
 
 ![SQL Installation](screenshots/mysql installation.png)
 
@@ -205,7 +205,7 @@ This account will later be required for:
 
 After all checks completed successfully, SQL Server 2014 Express was installed successfully.
 
-## SQL Installation Complete
+## SQL Installation Finished Successfully
 
 ![SQL Installation Complete](screenshots/mysql installation complete.png)
 
