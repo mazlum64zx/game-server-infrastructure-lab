@@ -62,13 +62,13 @@ cloudflared access login https://ssh.mazlum.uk
 
 ## Login Request
 
-![Cloudflare Login](../screenshots/cloudflare-login.png)
+![Cloudflare Login](screenshots/cloudflare-login.png)
 
 ---
 
 ## Successful Authentication
 
-![Cloudflare Success](../screenshots/cloudflare-success.png)
+![Cloudflare Success](screenshots/cloudflare-success.png)
 
 ---
 
@@ -99,7 +99,7 @@ Host ssh.mazlum.uk
 
 ## SSH Config Setup
 
-![SSH Config](../screenshots/ssh-config.png)
+![SSH Config](screenshots/ssh-config.png)
 
 ---
 
@@ -113,7 +113,7 @@ ssh mazlum@ssh.mazlum.uk
 
 ## Successful Native SSH Connection
 
-![Native SSH](../screenshots/native-ssh-success.png)
+![Native SSH](screenshots/native-ssh-success.png)
 
 ---
 
