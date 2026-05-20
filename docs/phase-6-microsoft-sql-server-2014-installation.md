@@ -207,7 +207,7 @@ After all checks completed successfully, SQL Server 2014 Express was installed s
 
 ## SQL Installation Finished Successfully
 
-![SQL Installation Complete](screenshots/mysql-installation-complete.png)
+![SQL Installation Complete](screenshots/mysql-installtion-complete.png)
 
 ---
 
