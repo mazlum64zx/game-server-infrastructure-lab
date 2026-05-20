@@ -78,10 +78,6 @@ Inside the SQL Server Installation Center, a new standalone SQL installation was
 
 ![SQL Installation](screenshots/mysql installation.png)
 
----
-
-# Selecting Installation Type
-
 The following option was selected:
 
 ```text
@@ -159,6 +155,10 @@ One of the most important configuration steps was enabling:
 Mixed Mode Authentication
 ```
 
+## SQL Authentication Configuration
+
+![SQL Authentication](screenshots/mysql-installation.png)
+
 ### Why Mixed Mode?
 
 Silkroad server environments typically rely on:
@@ -207,7 +207,7 @@ After all checks completed successfully, SQL Server 2014 Express was installed s
 
 ## SQL Installation Finished Successfully
 
-![SQL Installation Complete](screenshots/mysql installation complete.png)
+![SQL Installation Complete](screenshots/mysql-installation-complete.png)
 
 ---
 
