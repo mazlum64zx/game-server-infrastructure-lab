@@ -266,6 +266,7 @@ which nodes exist
 ---
 
 ## 4.2 Database Data
+<img width="943" height="664" alt="image" src="https://github.com/user-attachments/assets/d92ef0d5-06b9-4626-bc8a-2e1f863faddd" />
 
 The SQL database stores persistent world information.
 
