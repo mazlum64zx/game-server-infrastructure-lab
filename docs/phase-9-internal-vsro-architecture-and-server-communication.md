@@ -43,7 +43,8 @@ The system behaves more like a modern service infrastructure than a simple game 
 # Suggested Visual — GlobalManager Console
 
 ```md
-![GlobalManager](screenshots/globalmanager.png)
+<img width="1888" height="1483" alt="Screenshot 2026-05-21 124042" src="https://github.com/user-attachments/assets/214d56f4-9fe9-42a3-8316-5ad7458deae4" />
+
 ```
 
 Purpose:
@@ -474,8 +475,9 @@ Without successful certification:
 # Suggested Visual — Certification Handshake
 
 ```md
-![Certification Handshake](screenshots/Cmd.png)
+
 ```
+<img width="1443" height="1048" alt="Screenshot 2026-05-21 123719" src="https://github.com/user-attachments/assets/7f13e7f6-c7d4-4632-b9bd-66d1f1d9e5e7" />
 
 Purpose:
 
