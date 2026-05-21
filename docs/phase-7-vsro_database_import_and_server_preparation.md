@@ -123,6 +123,7 @@ SRO_VT_ACCOUNT
 SRO_VT_SHARD
 SRO_VT_SHARDLOG
 ```
+<img width="635" height="313" alt="importdatabases" src="https://github.com/user-attachments/assets/a957261d-2603-4eec-8ca7-a1134c5514be" />
 
 The databases were restored from:
 
