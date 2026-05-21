@@ -59,6 +59,7 @@ Purpose:
 # 2. Main vSRO Components
 
 ## CertificationServer
+<img width="813" height="665" alt="image" src="https://github.com/user-attachments/assets/7ea1b86b-83e3-419b-8044-132f806934d0" />
 
 Executable:
 
