@@ -1,0 +1,229 @@
+# 23. Lessons Learned
+
+## vSRO Networking & Certification
+
+```text
+A successful TCP connection does NOT automatically mean successful certification.
+```
+
+A service can:
+- connect to GlobalManager
+- open sockets correctly
+- appear in topology
+
+and still fail certification because of identity mismatch.
+
+---
+
+```text
+vSRO services can use hardcoded runtime IPs from inside the executable.
+```
+
+This means:
+- config files may be correct
+- packt.dat may be rebuilt
+- networking may work
+
+but certification still fails because the EXE sends another IP internally.
+
+---
+
+```text
+Config layer and executable layer are separate things.
+```
+
+Possible identity sources:
+
+```text
+server.cfg
+packt.dat
+srNodeType.ini
+hardcoded EXE strings
+network adapter selection
+```
+
+---
+
+```text
+GlobalManager topology alone is not proof that a service is healthy.
+```
+
+Real verification requires:
+- tasklist
+- netstat
+- certification logs
+
+---
+
+```text
+tasklist verifies processes.
+```
+
+```cmd
+tasklist | findstr Manager
+```
+
+proves whether the executable itself is running.
+
+---
+
+```text
+netstat verifies real TCP state.
+```
+
+```cmd
+netstat -ano
+```
+
+proves:
+- listening ports
+- established sockets
+- real connections
+
+instead of relying on GUI assumptions.
+
+---
+
+```text
+findstr can discover hardcoded IPs inside binaries.
+```
+
+Example:
+
+```cmd
+findstr /S /M "192.168.1.121" *.*
+```
+
+This is extremely useful for:
+- reverse engineering
+- migration debugging
+- old private server files
+- leaked binaries
+
+---
+
+```text
+Inline hex replacement is only safe when the new string is equal length or shorter.
+```
+
+Replacing:
+
+```text
+192.168.1.121
+```
+
+with:
+
+```text
+192.168.122.198
+```
+
+is dangerous because the new string is longer.
+
+This can:
+- corrupt offsets
+- break instructions
+- damage memory alignment
+- crash the executable
+
+---
+
+```text
+Binary patching should be avoided unless absolutely necessary.
+```
+
+A cleaner architecture is usually better than modifying binaries.
+
+---
+
+```text
+A second isolated NIC is an elegant workaround for hardcoded IPs.
+```
+
+Advantages:
+
+```text
+No dangerous binary editing
+No full bridge into home LAN
+No exposure of VM to entire network
+No runtime instability
+```
+
+while still allowing:
+- hardcoded identity IPs
+- internet access
+- NAT isolation
+
+---
+
+```text
+Multiple NICs inside a VM can separate responsibilities cleanly.
+```
+
+Example:
+
+```text
+NIC 1:
+Internet / NAT
+
+NIC 2:
+Internal service identity
+```
+
+This is a common professional virtualization technique.
+
+---
+
+```text
+A VM can have internet access and still stay mostly isolated.
+```
+
+Using:
+- libvirt NAT
+- isolated virtual bridges
+- dedicated internal subnets
+
+gives far more control than simple bridge mode.
+
+---
+
+```text
+Full bridge mode is often unnecessary and less secure.
+```
+
+Bridge mode exposes the VM directly into the home LAN.
+
+The isolated dual-NIC approach keeps:
+- cleaner separation
+- less attack surface
+- better control
+
+---
+
+```text
+Understanding infrastructure is more important than blindly changing configs.
+```
+
+The real breakthrough came from:
+- understanding runtime identity
+- understanding certification flow
+- understanding VM networking
+- understanding how services actually communicate
+
+instead of random config edits.
+
+---
+
+```text
+Systematic debugging always beats guessing.
+```
+
+The final solution came from:
+1. observing logs
+2. validating processes
+3. validating sockets
+4. validating runtime IPs
+5. isolating variables
+6. designing proper networking
+
+instead of trial-and-error edits.
