@@ -33,7 +33,8 @@ The system behaves more like a modern service infrastructure than a simple game 
 
 ---
 
-# 2. Main vSRO Components
+# 2. Main vSRO Componen
+![CMD Window](cmd.png)
 
 ## CertificationServer
 
