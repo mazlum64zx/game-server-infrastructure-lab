@@ -396,7 +396,7 @@ Selected:
 - Windows 10 Pro
 - Offline account setup
 
-![Windows Installation](3.png)
+![Windows Installation](./screenshots/3.png)
 
 Reason:
 Better suited for:
@@ -423,7 +423,7 @@ Better suited for:
 ---
 
 # Current Infrastructure Status
-![Homelab Infrastructure](4.png)
+![Homelab Infrastructure](./screenshots/4.png)
 
 ```text
 Ubuntu Homelab Server
@@ -434,7 +434,7 @@ Ubuntu Homelab Server
 ├── VNC Remote Access
 └── SSH Management
 ```
-![Windows Boot Installation](5.png)
+![Windows Boot Installation](./screenshots/5.png)
 ---
 
 # Next Phase
