@@ -34,7 +34,7 @@ The system behaves more like a modern service infrastructure than a simple game 
 ---
 
 # 2. Main vSRO Componen
-![GM Window](globalmanager.png)
+![GlobalManager](screenshots/globalmanager.png)
 
 ## CertificationServer
 
