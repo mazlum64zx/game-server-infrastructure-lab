@@ -1,285 +1,128 @@
-# Phase 10 — Service Certification, Hardcoded IPs & Isolated Second NIC
+# Phase 10 — Hardcoded IPs & Isolated VM Networking
 
-## Goal
+## Overview
 
-In this phase, the goal was to start the next vSRO services after GlobalManager and understand why MachineManager, GatewayServer and other services were not staying connected.
+Phase 10 focused on solving one of the first real infrastructure-level problems inside the vSRO188 server architecture.
 
-The main focus was:
+Unlike previous phases which mainly involved:
+- installation
+- deployment
+- configuration
+- VM setup
 
+this phase entered deeper territory involving:
+
+- runtime service identity
+- service certification
+- TCP verification
+- hardcoded executable IPs
+- binary behavior
+- virtualization networking
+- isolated multi-NIC VM architecture
+- infrastructure debugging
+
+The main objective was to understand why several vSRO services failed certification even though:
+- ports were open
+- config files were correct
+- services appeared online
+
+This phase became an important transition from:
 ```text
-CertServer
-GlobalManager
-MachineManager
-vSRO service certification
-runtime IP identity
-hardcoded EXE IPs
-isolated VM networking
+simple setup work
+```
+
+into:
+```text
+real infrastructure debugging and runtime analysis
 ```
 
 ---
 
-# 1. Initial Situation
+# 1. Initial Problem
 
-CertificationServer and GlobalManager were already working.
+After successfully starting:
+- CustomCertificationServer
+- GlobalManager
 
-However, when starting MachineManager, GatewayServer or FarmManager, the GlobalManager showed errors like:
+the next services:
+- MachineManager
+- GatewayServer
+- FarmManager
+- AgentServer
+
+failed to certify correctly.
+
+The GlobalManager displayed errors such as:
 
 ```text
 cannot certify server body : [MachineManager][25.73.87.49]
-cannot certify server body : [GatewayServer][192.168.122.198]
-cannot certify server body : [FarmManager][192.168.122.198]
 ```
 
-This meant:
+or later:
 
 ```text
-The service could reach GlobalManager,
-but GlobalManager rejected the service identity.
+cannot certify server body : [MachineManager][192.168.122.198]
 ```
-
-So the problem was not simply a missing network connection.
-
-The problem was the internal certification identity.
-
----
-
-# 2. Important Difference: Config IP vs Runtime IP
-
-A very important lesson was:
-
-```text
-The IP written in config files is not always the IP used at runtime.
-```
-
-Some vSRO executables contain hardcoded IP addresses inside the EXE itself.
-
-That means:
-
-```text
-server.cfg can be correct,
-packt.dat can be rebuilt,
-but the EXE can still send another IP.
-```
-
-This was exactly the case here.
-
----
-
-# 3. Checking Running Processes
-
-To verify if services were actually running, this command was used:
-
-```cmd
-tasklist | findstr Manager
-```
-
-What it does:
-
-```text
-tasklist
-```
-
-lists all running Windows processes.
-
-```text
-findstr Manager
-```
-
-filters the output and only shows processes containing the word `Manager`.
-
-Example result:
-
-```text
-GlobalManager.exe
-MachineManager.exe
-```
-
-This proves whether the process is actually running.
-
----
-
-Another useful command:
-
-```cmd
-tasklist | findstr Server
-```
-
-What it does:
-
-```text
-Shows running server processes such as GatewayServer, AgentServer or CertificationServer.
-```
-
-This is important because the GlobalManager GUI can show planned topology nodes even when the real EXE is not running.
-
----
-
-# 4. Checking Network Ports
-
-To verify real TCP ports and connections, this command was used:
-
-```cmd
-netstat -ano
-```
-
-What it does:
-
-```text
-Shows active TCP/UDP connections, listening ports and process IDs.
-```
-
-Important columns:
-
-```text
-Local Address   = local IP and port
-Remote Address  = connected remote IP and port
-State           = LISTENING / ESTABLISHED / CLOSED
-PID             = process ID
-```
-
----
-
-To check a specific port:
-
-```cmd
-netstat -ano | findstr 32000
-```
-
-What it does:
-
-```text
-Shows only network entries containing port 32000.
-```
-
-This was used to verify the CertificationServer.
-
-Expected example:
-
-```text
-127.0.0.1:32000 LISTENING
-127.0.0.1:32000 ESTABLISHED
-```
-
-Meaning:
-
-```text
-LISTENING    = server is waiting for connections
-ESTABLISHED  = active TCP connection exists
-```
-
----
-
-Other useful checks:
-
-```cmd
-netstat -ano | findstr 16274
-```
-
-What it does:
-
-```text
-Checks whether services using port 16274 are listening or connected.
-```
-
-```cmd
-netstat -ano | findstr 24523
-```
-
-What it does:
-
-```text
-Checks whether services using port 24523 are listening or connected.
-```
-
-These commands are important because they prove real network state, not just GUI state.
-
----
-
-# 5. Searching for Hardcoded IPs
-
-A recursive search was used to find old IP addresses inside files:
-
-```cmd
-findstr /S /M "25.73.87.49" *.*
-```
-
-What it does:
-
-```text
-/S
-```
-
-searches through all subfolders.
-
-```text
-/M
-```
-
-prints only filenames that contain the searched text.
-
-```text
-"25.73.87.49"
-```
-
-is the old hardcoded IP.
-
-```text
-*.*
-```
-
-means search all files.
-
-Result:
-
-```text
-MachineManager.exe
-AgentServer.exe
-SR_GameServer.exe
-```
-
-This proved that the old IP was inside the executables themselves.
-
----
-
-Later, the same method was used for another IP:
-
-```cmd
-findstr /S /M "192.168.1.121" *.*
-```
-
-This showed:
-
-```text
-MachineManager.exe
-```
-
-Meaning:
-
-```text
-Even the replacement MachineManager.exe contained a hardcoded IP.
-```
-
----
-
-# 6. Why Config Changes Alone Did Not Work
-
-The config files were changed and `packt.dat` was rebuilt, but MachineManager still reported the old IP.
 
 This proved:
 
 ```text
-The runtime identity was not only loaded from config files.
+The service could reach GlobalManager,
+but the runtime identity was rejected.
 ```
 
-Instead, MachineManager sent an IP from inside the executable.
-
-Important conclusion:
+This was an important distinction because:
 
 ```text
-Config layer != executable layer
+Network connectivity alone was NOT the issue.
 ```
 
-The service identity can come from:
+The problem existed at the:
+- certification layer
+- runtime identity layer
+
+instead of the:
+- TCP layer
+- routing layer
+
+---
+
+# 2. Understanding Runtime Identity
+
+One of the most important discoveries in this phase was:
+
+```text
+A successful TCP connection does NOT automatically mean successful certification.
+```
+
+A service can:
+- connect to GlobalManager
+- open sockets correctly
+- appear in topology
+
+and still fail certification because:
+- the runtime identity is invalid
+- the reported IP does not match expectations
+- the service body is rejected
+
+This became one of the first major lessons about:
+```text
+distributed service architectures
+```
+
+inside vSRO.
+
+---
+
+# 3. Config Layer vs Executable Layer
+
+Another major discovery was understanding that:
+
+```text
+Config layer and executable layer are separate things.
+```
+
+Possible runtime identity sources inside vSRO included:
 
 ```text
 server.cfg
@@ -289,11 +132,244 @@ hardcoded EXE strings
 network adapter detection
 ```
 
+This meant:
+
+```text
+Editing server.cfg alone is NOT always enough.
+```
+
+Even after rebuilding:
+```cmd
+Convert.exe ini ini dat packt.dat
+```
+
+MachineManager still attempted certification using:
+```text
+25.73.87.49
+```
+
+This proved:
+
+```text
+The executable itself contained hardcoded runtime IP data.
+```
+
 ---
 
-# 7. Rebuilding packt.dat
+# 4. Using tasklist to Verify Running Services
 
-After changing INI/config data, `packt.dat` must be rebuilt.
+One important debugging technique involved verifying whether services were actually running.
+
+Command:
+
+```cmd
+tasklist | findstr Manager
+```
+
+Explanation:
+
+```text
+tasklist
+```
+
+lists all active Windows processes.
+
+```text
+findstr Manager
+```
+
+filters the output and only displays processes containing the word:
+```text
+Manager
+```
+
+This helped verify:
+- MachineManager.exe
+- GlobalManager.exe
+- FarmManager.exe
+
+were actually alive.
+
+---
+
+Another useful variation:
+
+```cmd
+tasklist | findstr Server
+```
+
+This was used to verify:
+- GatewayServer.exe
+- AgentServer.exe
+- SR_GameServer.exe
+- CertificationServer.exe
+
+Important realization:
+
+```text
+GlobalManager topology alone is NOT proof that a service is healthy.
+```
+
+The GUI may still display nodes even when:
+- certification failed
+- the service crashed
+- the TCP connection closed
+
+---
+
+# 5. Using netstat for Real TCP Verification
+
+Another critical debugging tool was:
+
+```cmd
+netstat -ano
+```
+
+This command verifies:
+- listening ports
+- active sockets
+- established TCP sessions
+- process IDs
+
+instead of relying on:
+- assumptions
+- topology GUIs
+- startup windows
+
+---
+
+Useful examples:
+
+```cmd
+netstat -ano | findstr 32000
+```
+
+Purpose:
+
+```text
+Verifies whether CertificationServer is listening or connected.
+```
+
+---
+
+```cmd
+netstat -ano | findstr 24523
+```
+
+Purpose:
+
+```text
+Checks ports commonly used by SR_GameServer or Agent services.
+```
+
+---
+
+```cmd
+netstat -ano | findstr 16274
+```
+
+Purpose:
+
+```text
+Checks ports commonly used by MachineManager or FarmManager.
+```
+
+---
+
+Important TCP states learned:
+
+```text
+LISTENING
+```
+
+means:
+```text
+A service is waiting for incoming connections.
+```
+
+---
+
+```text
+ESTABLISHED
+```
+
+means:
+```text
+An active TCP connection currently exists.
+```
+
+This became one of the most important debugging methods during this phase.
+
+---
+
+# 6. Discovering Hardcoded IPs
+
+A major breakthrough came from using:
+
+```cmd
+findstr /S /M "25.73.87.49" *.*
+```
+
+Explanation:
+
+```text
+/S
+```
+
+search recursively through subfolders.
+
+```text
+/M
+```
+
+display only filenames containing the string.
+
+```text
+*.*
+```
+
+search all file types.
+
+---
+
+Result:
+
+```text
+MachineManager.exe
+AgentServer.exe
+SR_GameServer.exe
+```
+
+This proved:
+
+```text
+The old runtime IP was stored directly inside executable binaries.
+```
+
+This discovery completely changed the debugging direction.
+
+The issue was no longer:
+- firewall
+- port forwarding
+- wrong config
+
+The issue became:
+
+```text
+hardcoded runtime identity inside the EXE.
+```
+
+---
+
+# 7. Why Rebuilding packt.dat Was Still Important
+
+Even though the main issue involved hardcoded executable IPs,
+rebuilding:
+```text
+packt.dat
+```
+
+remained important.
 
 Command:
 
@@ -301,48 +377,51 @@ Command:
 Convert.exe ini ini dat packt.dat
 ```
 
-What it does:
+Explanation:
 
 ```text
 Convert.exe
 ```
 
-runs the vSRO conversion tool.
+runs the vSRO converter utility.
 
 ```text
 ini
 ```
 
-means input format is INI.
+input format.
 
 ```text
 ini
 ```
 
-means input folder is the `ini` folder.
+input folder.
 
 ```text
 dat
 ```
 
-means output format is DAT.
+output format.
 
 ```text
 packt.dat
 ```
 
-is the generated output file used by the CertificationServer.
+generated certification/runtime data file.
 
-Important:
+This step ensured:
+- INI modifications
+- node configuration changes
+- certification updates
 
+were actually compiled into the runtime data file used by:
 ```text
-Editing INI files alone is not enough.
-The runtime file packt.dat must be rebuilt.
+CustomCertificationServer.exe
 ```
 
 ---
 
-# 8. CertificationServer Start Command
+# 8. Starting CertificationServer
 
 Command:
 
@@ -350,10 +429,10 @@ Command:
 CustomCertificationServer.exe packt.dat
 ```
 
-What it does:
+Purpose:
 
 ```text
-Starts the custom CertificationServer and loads packt.dat as its certification database/config source.
+Starts the custom CertificationServer using packt.dat as its runtime database/config source.
 ```
 
 Expected output:
@@ -362,25 +441,23 @@ Expected output:
 Certification Server started on 127.0.0.1:32000
 ```
 
-This means:
+Meaning:
 
 ```text
-The CertificationServer is listening on port 32000.
+The certification service is listening on TCP port 32000.
 ```
 
 ---
 
-# 9. Discovery: MachineManager Had Hardcoded Runtime IP
+# 9. Discovering Runtime Hardcoded IPs
 
-MachineManager kept sending:
+Initially MachineManager sent:
 
 ```text
 MachineManager[25.73.87.49]
 ```
 
-even after config changes.
-
-After replacing the executable with another version, it sent:
+Later, after replacing the EXE with another version:
 
 ```text
 MachineManager[192.168.1.121]
@@ -389,89 +466,147 @@ MachineManager[192.168.1.121]
 This proved:
 
 ```text
-The runtime identity was coming from the executable.
+The runtime IP was embedded directly inside the executable.
 ```
 
-The EXE itself contained an IP address.
+Even so-called:
+```text
+clean files
+```
+
+still contained:
+- predefined runtime IPs
+- internal network assumptions
+- embedded certification identities
 
 ---
 
-# 10. Why Simple Hex Editing Was Not Enough
+# 10. Why Simple Hex Editing Was Dangerous
 
-The old hardcoded IP was:
+At first, HxD hex editing was attempted.
+
+However:
 
 ```text
 192.168.1.121
 ```
 
-The desired VM IP was:
+contains:
+```text
+13 characters
+```
+
+while:
 
 ```text
 192.168.122.198
 ```
 
-Problem:
-
+contains:
 ```text
-192.168.1.121   = 13 characters
-192.168.122.198 = 15 characters
+15 characters
 ```
 
-A longer IP cannot simply be inserted into an EXE without shifting bytes.
+This created a serious binary safety issue.
 
-That can break the executable.
+Replacing a string with a longer one can:
+- shift offsets
+- corrupt instructions
+- break executable structures
+- crash the process
 
-Conclusion:
+Important lesson:
 
 ```text
-Simple hex editing is only safe when the replacement string is the same length or shorter.
+Inline hex replacement is only safe when the new string is equal length or shorter.
+```
+
+This explained why:
+- simple HxD editing
+- direct ASCII replacement
+
+became unsafe for larger IPs.
+
+---
+
+# 11. Avoiding Dangerous Binary Repointing
+
+At this point, another major realization occurred:
+
+```text
+Binary patching should be avoided unless absolutely necessary.
+```
+
+A cleaner infrastructure design was often:
+- safer
+- easier
+- more maintainable
+
+than:
+- ASM patching
+- executable repointing
+- code caves
+- PE modifications
+
+This shifted the strategy away from:
+```text
+modifying the executable
+```
+
+toward:
+```text
+designing a better virtual network architecture.
 ```
 
 ---
 
-# 11. Final Network Solution
+# 12. Designing an Isolated Dual-NIC VM Architecture
 
-Instead of dangerous binary patching or exposing the VM to the full home network, a second isolated virtual network adapter was added.
-
-Final design:
+The final solution became:
 
 ```text
 Adapter 1:
 192.168.122.x
-Purpose: Internet / NAT / normal VM access
+Purpose:
+Internet / NAT / VM management
 
 Adapter 2:
 192.168.1.121
-Purpose: isolated vSRO internal certification identity
+Purpose:
+Internal vSRO certification identity
 ```
 
-This solved the problem without:
+This design solved:
+- hardcoded runtime IP problems
+- certification mismatch
+- VM isolation concerns
 
-```text
-full bridge networking
-unsafe binary patching
-exposing the VM to the whole home LAN
-```
+while preserving:
+- internet access
+- NAT networking
+- host security
 
 ---
 
-# 12. Creating an Isolated libvirt Network
+# 13. Creating an Isolated libvirt Network
 
 A new isolated libvirt network was created.
 
-File:
+Command:
 
 ```bash
 nano isolated-vsro.xml
 ```
 
-What it does:
+Purpose:
 
 ```text
-Opens a new XML file in the nano editor.
+Creates and edits a new libvirt network definition file.
 ```
 
-XML content:
+---
+
+Network XML:
 
 ```xml
 <network>
@@ -485,24 +620,36 @@ XML content:
 Explanation:
 
 ```text
-<name>vsroisolated</name>
+<name>
 ```
 
-sets the libvirt network name.
+defines the libvirt network name.
+
+---
 
 ```text
 <bridge name='virbr1'/>
 ```
 
-creates a new virtual bridge interface on the host.
+creates a new isolated virtual bridge interface.
+
+---
 
 ```text
 192.168.1.1
 ```
 
-becomes the host-side IP of this isolated virtual network.
+becomes the host-side gateway/interface of the isolated network.
 
-This network is separate from the real home network.
+Important:
+
+```text
+This network exists only between:
+- host
+- VM
+```
+
+It does NOT expose the VM to the real home LAN.
 
 ---
 
@@ -514,17 +661,33 @@ ENTER
 CTRL + X
 ```
 
-What it does:
+Meaning:
 
 ```text
-CTRL + O  = write/save file
-ENTER     = confirm filename
-CTRL + X  = exit nano
+CTRL + O
 ```
+
+save file.
 
 ---
 
-# 13. Registering the libvirt Network
+```text
+ENTER
+```
+
+confirm filename.
+
+---
+
+```text
+CTRL + X
+```
+
+exit nano editor.
+
+---
+
+# 14. Registering the New libvirt Network
 
 Command:
 
@@ -532,10 +695,10 @@ Command:
 virsh net-define isolated-vsro.xml
 ```
 
-What it does:
+Purpose:
 
 ```text
-Registers the XML network definition inside libvirt.
+Registers the network definition inside libvirt.
 ```
 
 ---
@@ -546,7 +709,7 @@ Command:
 virsh net-start vsroisolated
 ```
 
-What it does:
+Purpose:
 
 ```text
 Starts the isolated virtual network.
@@ -560,10 +723,10 @@ Command:
 virsh net-autostart vsroisolated
 ```
 
-What it does:
+Purpose:
 
 ```text
-Makes the isolated network start automatically after host reboot.
+Automatically starts the network after host reboot.
 ```
 
 ---
@@ -574,13 +737,13 @@ Command:
 virsh net-list --all
 ```
 
-What it does:
+Purpose:
 
 ```text
-Lists all libvirt networks and shows whether they are active or inactive.
+Displays all libvirt networks and their status.
 ```
 
-Expected:
+Expected result:
 
 ```text
 vsroisolated active
@@ -588,7 +751,7 @@ vsroisolated active
 
 ---
 
-# 14. Attaching a Second Network Adapter to the VM
+# 15. Attaching a Second Virtual NIC to the VM
 
 Command:
 
@@ -602,25 +765,31 @@ virsh attach-interface \
   --live
 ```
 
-What it does:
+Purpose:
 
 ```text
-virsh attach-interface
+Adds a second virtual network interface to the Windows VM.
 ```
 
-adds a new virtual network interface to a VM.
+---
+
+Parameter explanation:
 
 ```text
 --domain windows10
 ```
 
-selects the VM named `windows10`.
+selects the VM.
+
+---
 
 ```text
 --type network
 ```
 
-means the adapter connects to a libvirt virtual network.
+uses a libvirt virtual network.
+
+---
 
 ```text
 --source vsroisolated
@@ -628,27 +797,33 @@ means the adapter connects to a libvirt virtual network.
 
 connects the adapter to the isolated vSRO network.
 
+---
+
 ```text
 --model e1000e
 ```
 
-uses an Intel e1000e virtual network card model.
+uses an Intel virtual NIC model.
+
+---
 
 ```text
 --config
 ```
 
-makes the adapter permanent after reboot.
+makes the NIC persistent after reboot.
+
+---
 
 ```text
 --live
 ```
 
-adds it immediately while the VM is running.
+adds the adapter immediately while the VM is running.
 
 ---
 
-# 15. Checking VM Network Interfaces on Host
+# 16. Verifying VM Interfaces
 
 Command:
 
@@ -656,85 +831,33 @@ Command:
 virsh domiflist windows10
 ```
 
-What it does:
+Purpose:
 
 ```text
-Shows all virtual network interfaces attached to the VM.
+Displays all virtual network interfaces attached to the VM.
 ```
 
 Expected final structure:
 
 ```text
-1x default
-1x vsroisolated
-```
-
-Meaning:
-
-```text
-default       = normal NAT internet adapter
-vsroisolated = isolated internal vSRO adapter
+1x default NAT adapter
+1x vsroisolated adapter
 ```
 
 ---
 
-# 16. If Too Many Adapters Were Added
+# 17. Configuring Windows VM Adapters
 
-If the command was run multiple times by accident, extra adapters can appear.
+After attaching the second NIC, Windows displayed:
+- Ethernet
+- Ethernet 2
+- Ethernet 3
 
-To remove one, first list interfaces:
-
-```bash
-virsh domiflist windows10
-```
-
-Then remove the wrong one by MAC address:
-
-```bash
-virsh detach-interface \
-  --domain windows10 \
-  --type network \
-  --mac XX:XX:XX:XX:XX:XX \
-  --config \
-  --live
-```
-
-What it does:
-
-```text
-Removes the selected virtual network adapter from the VM.
-```
-
-```text
---mac
-```
-
-selects the exact adapter to remove.
-
-Final goal:
-
-```text
-Only one default adapter
-Only one vsroisolated adapter
-```
+The accidental extra adapter was disabled.
 
 ---
 
-# 17. Windows VM Network Configuration
-
-After adding the second adapter, Windows showed:
-
-```text
-Ethernet
-Ethernet 2
-Ethernet 3
-```
-
-The extra accidental adapter was disabled.
-
-Correct final setup:
-
----
+Final configuration:
 
 ## Ethernet
 
@@ -747,7 +870,7 @@ Internet / NAT
 Configuration:
 
 ```text
-IP automatically assigned by DHCP
+DHCP automatic
 ```
 
 Expected IP:
@@ -756,14 +879,6 @@ Expected IP:
 192.168.122.198
 ```
 
-Gateway:
-
-```text
-192.168.122.1
-```
-
-This adapter keeps the VM online.
-
 ---
 
 ## Ethernet 2
@@ -771,16 +886,16 @@ This adapter keeps the VM online.
 Purpose:
 
 ```text
-isolated vSRO certification network
+Internal isolated vSRO identity network
 ```
 
 Manual IPv4 configuration:
 
 ```text
-IP address:
+IP:
 192.168.1.121
 
-Subnet mask:
+Mask:
 255.255.255.0
 
 Gateway:
@@ -797,11 +912,16 @@ No gateway
 No DNS
 ```
 
-Because this adapter is only for internal vSRO identity, not internet access.
+because this NIC should NOT route internet traffic.
+
+It only exists for:
+```text
+MachineManager certification identity.
+```
 
 ---
 
-# 18. Verifying Windows IPs
+# 18. Verifying Final Network State
 
 Command:
 
@@ -809,10 +929,10 @@ Command:
 ipconfig
 ```
 
-What it does:
+Purpose:
 
 ```text
-Shows all Windows network adapter IP addresses.
+Displays all active Windows network adapters and IP addresses.
 ```
 
 Expected result:
@@ -825,18 +945,18 @@ Ethernet 2:
 192.168.1.121
 ```
 
-This proves:
+Meaning:
 
 ```text
-The VM still has internet through NAT,
-and also has the hardcoded vSRO IP on a second isolated adapter.
+The VM keeps internet access through NAT,
+while simultaneously satisfying the hardcoded vSRO runtime IP.
 ```
 
 ---
 
-# 19. Final Test
+# 19. Final Successful Certification
 
-Start order:
+Final startup order:
 
 ```text
 1. CustomCertificationServer.exe packt.dat
@@ -844,7 +964,7 @@ Start order:
 3. MachineManager.exe
 ```
 
-Expected MachineManager log:
+Expected MachineManager output:
 
 ```text
 request server certification
@@ -852,116 +972,61 @@ successfully server certificated
 server cord established
 ```
 
-Expected GlobalManager log:
+Expected GlobalManager output:
 
 ```text
-Certification request from : MachineManager[192.168.1.121]
+Certification request from:
+MachineManager[192.168.1.121]
 ```
 
-This proves:
+This proved:
 
 ```text
-MachineManager finally certifies successfully.
+The hardcoded runtime IP problem was finally solved successfully.
 ```
 
 ---
 
-# 20. Final Result
+# 20. Final Architecture
 
-The problem was solved without exposing the VM to the full home network.
-
-Final architecture:
+Final network design:
 
 ```text
 Linux Host
 │
-├── libvirt NAT network
+├── NAT Network (virbr0)
 │      └── Windows VM Ethernet
 │              └── 192.168.122.198
-│              └── Internet / VM management
+│              └── Internet / NAT
 │
-└── isolated vSRO network
+└── Isolated vSRO Network (virbr1)
        └── Windows VM Ethernet 2
                └── 192.168.1.121
-               └── internal vSRO certification identity
+               └── internal certification identity
 ```
+
+This architecture achieved:
+
+```text
+Internet access
+VM isolation
+hardcoded IP compatibility
+stable certification
+safe infrastructure separation
+```
+
+without:
+- dangerous binary repointing
+- full bridge networking
+- exposing the VM to the entire home LAN
 
 ---
 
-# 21. Key Lessons Learned
+# 21. Lessons Learned
 
-Important technical lessons from this phase:
+## Understanding Runtime Identity vs Configuration
 
-```text
-GlobalManager GUI topology does not always prove a service is really running.
-```
-
-```text
-tasklist proves whether a process is running.
-```
-
-```text
-netstat proves whether ports and TCP connections really exist.
-```
-
-```text
-findstr can reveal hardcoded IPs inside EXE files.
-```
-
-```text
-vSRO service identity can come from the EXE, not only from config files.
-```
-
-```text
-Changing server.cfg alone is not always enough.
-```
-
-```text
-packt.dat must be rebuilt after INI changes.
-```
-
-```text
-Hardcoded IPs can break certification even when networking works.
-```
-
-```text
-A second isolated NIC can solve hardcoded IP problems without exposing the VM to the full LAN.
-```
-
----
-
-# 22. Final Status
-
-Current confirmed status:
-
-```text
-CertificationServer works
-GlobalManager works
-MachineManager works
-MachineManager certification succeeds
-Hardcoded IP issue solved
-VM keeps internet through NAT
-VM keeps isolated vSRO identity network
-No full bridge into home network required
-```
-
-This phase is a major step from simple service startup into real infrastructure debugging.
-
-It covered:
-
-```text
-runtime service identity
-TCP verification
-hardcoded binary IP discovery
-isolated virtual networking
-multi-adapter VM design
-vSRO certification behavior
-```
-
-
-# 23. Lessons Learned
-
-## vSRO Networking & Certification
+One of the most important discoveries in this phase was:
 
 ```text
 A successful TCP connection does NOT automatically mean successful certification.
@@ -972,42 +1037,19 @@ A service can:
 - open sockets correctly
 - appear in topology
 
-and still fail certification because of identity mismatch.
+and still fail certification because:
+- the runtime identity is invalid
+- the reported IP does not match expectations
+- the service body is rejected
 
 ---
 
-```text
-vSRO services can use hardcoded runtime IPs from inside the executable.
-```
+## GlobalManager Topology Alone Is Not Enough
 
-This means:
-- config files may be correct
-- packt.dat may be rebuilt
-- networking may work
-
-but certification still fails because the EXE sends another IP internally.
-
----
-
-```text
-Config layer and executable layer are separate things.
-```
-
-Possible identity sources:
-
-```text
-server.cfg
-packt.dat
-srNodeType.ini
-hardcoded EXE strings
-network adapter selection
-```
-
----
-
-```text
-GlobalManager topology alone is not proof that a service is healthy.
-```
+The topology GUI may still display services even when:
+- certification failed
+- sockets closed
+- processes crashed
 
 Real verification requires:
 - tasklist
@@ -1016,56 +1058,47 @@ Real verification requires:
 
 ---
 
-```text
-tasklist verifies processes.
-```
+## tasklist Verifies Processes
 
 ```cmd
 tasklist | findstr Manager
 ```
 
-proves whether the executable itself is running.
+proved whether services were actually running.
 
 ---
 
-```text
-netstat verifies real TCP state.
-```
+## netstat Verifies Real TCP State
 
 ```cmd
 netstat -ano
 ```
 
-proves:
-- listening ports
-- established sockets
-- real connections
+became one of the most important infrastructure debugging tools.
 
-instead of relying on GUI assumptions.
+It verified:
+- ports
+- sockets
+- active TCP state
+- established sessions
+
+instead of relying on assumptions.
 
 ---
 
-```text
-findstr can discover hardcoded IPs inside binaries.
-```
-
-Example:
+## findstr Can Reveal Hardcoded Runtime Data
 
 ```cmd
-findstr /S /M "192.168.1.121" *.*
+findstr /S /M "25.73.87.49" *.*
 ```
 
-This is extremely useful for:
-- reverse engineering
-- migration debugging
-- old private server files
-- leaked binaries
+revealed hardcoded runtime IPs directly inside executables.
+
+This became a major reverse engineering discovery.
 
 ---
 
-```text
-Inline hex replacement is only safe when the new string is equal length or shorter.
-```
+## Inline Hex Editing Is Dangerous for Longer Strings
 
 Replacing:
 
@@ -1079,112 +1112,68 @@ with:
 192.168.122.198
 ```
 
-is dangerous because the new string is longer.
-
-This can:
-- corrupt offsets
-- break instructions
-- damage memory alignment
-- crash the executable
+was unsafe because:
+- the replacement string was longer
+- binary structures could shift
+- offsets could break
 
 ---
 
+## Infrastructure Design Is Often Better Than Binary Patching
+
+Instead of:
+- ASM patching
+- executable repointing
+- code cave injection
+
+the cleaner solution became:
 ```text
-Binary patching should be avoided unless absolutely necessary.
+better network architecture
 ```
 
-A cleaner architecture is usually better than modifying binaries.
+using:
+- virtualization
+- isolated NICs
+- separated responsibilities
 
 ---
 
-```text
-A second isolated NIC is an elegant workaround for hardcoded IPs.
-```
-
-Advantages:
-
-```text
-No dangerous binary editing
-No full bridge into home LAN
-No exposure of VM to entire network
-No runtime instability
-```
-
-while still allowing:
-- hardcoded identity IPs
-- internet access
-- NAT isolation
-
----
-
-```text
-Multiple NICs inside a VM can separate responsibilities cleanly.
-```
-
-Example:
-
-```text
-NIC 1:
-Internet / NAT
-
-NIC 2:
-Internal service identity
-```
-
-This is a common professional virtualization technique.
-
----
-
-```text
-A VM can have internet access and still stay mostly isolated.
-```
+## Multi-NIC VM Design Is Extremely Powerful
 
 Using:
-- libvirt NAT
-- isolated virtual bridges
-- dedicated internal subnets
+- one NIC for internet
+- one NIC for isolated internal services
 
-gives far more control than simple bridge mode.
+allowed:
+- safe VM isolation
+- hardcoded identity compatibility
+- stable networking
+- clean architecture
 
----
-
-```text
-Full bridge mode is often unnecessary and less secure.
-```
-
-Bridge mode exposes the VM directly into the home LAN.
-
-The isolated dual-NIC approach keeps:
-- cleaner separation
-- less attack surface
-- better control
+without exposing the VM directly to the home LAN.
 
 ---
 
-```text
-Understanding infrastructure is more important than blindly changing configs.
-```
-
-The real breakthrough came from:
-- understanding runtime identity
-- understanding certification flow
-- understanding VM networking
-- understanding how services actually communicate
-
-instead of random config edits.
-
----
-
-```text
-Systematic debugging always beats guessing.
-```
+## Systematic Debugging Always Wins
 
 The final solution came from:
+
 1. observing logs
 2. validating processes
-3. validating sockets
+3. validating TCP state
 4. validating runtime IPs
 5. isolating variables
-6. designing proper networking
+6. testing assumptions
+7. designing proper infrastructure
 
-instead of trial-and-error edits.
+instead of:
+- random tutorials
+- blind config edits
+- unsafe binary modifications
+
+This phase became one of the first true:
+```text
+infrastructure engineering and runtime debugging phases
+```
+
+inside the vSRO project.
