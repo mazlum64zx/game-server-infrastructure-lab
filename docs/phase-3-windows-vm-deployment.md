@@ -235,7 +235,7 @@ virsh list --all
 
 Purpose:
 Display all virtual machines including powered off VMs.
-![Windows VM](screenshots/1.png)
+![Windows VM](./screenshots/1.png)
 ---
 
 # VM Power Commands
