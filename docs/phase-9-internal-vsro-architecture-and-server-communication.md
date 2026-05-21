@@ -708,6 +708,7 @@ Connect TO the CertificationServer here
 ---
 
 ## Advertised IP
+<img width="497" height="57" alt="image" src="https://github.com/user-attachments/assets/8302932e-9908-473b-910f-b8e55ca3ffca" />
 
 Example seen in packet logs:
 
