@@ -351,7 +351,7 @@ ssh -L 5900:127.0.0.1:5900 mazlum@192.168.0.216
 
 Purpose:
 Forward the VM graphical display securely to the local PC.
-![SSH VNC Tunnel](2.png)
+![SSH VNC Tunnel](./screenshots/2.png)
 ---
 
 # SSH Tunnel Explanation
