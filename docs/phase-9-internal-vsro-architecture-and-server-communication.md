@@ -2,22 +2,29 @@
 
 ## Overview
 
-Phase 9 focuses on understanding the internal architecture of the vSRO188 server environment.
+Phase 9 focuses on documenting and understanding the internal architecture of the vSRO188 server environment.
 
-Unlike previous phases which focused mainly on recovery and configuration fixes, this phase documents:
+Unlike earlier phases which mainly documented installation, deployment, and environment setup steps, this phase focuses heavily on:
 
-- how vSRO services communicate
-- what each server process does
-- how certification works
-- how packets are exchanged
-- the role of TCP communication
-- how services register themselves
-- the difference between database data and live network data
-- why localhost rewrites are important
-- why startup order matters
-- how the MMO infrastructure is internally organized
+- internal server communication
+- certification flow
+- service registration
+- TCP communication
+- packet exchange
+- startup dependencies
+- service discovery
+- distributed server architecture
+- runtime coordination
 
-This phase is intended as a learning/reference chapter and should be readable later like a technical book.
+The goal of this phase is not only to make the server work, but to understand WHAT actually happens internally when the vSRO infrastructure starts.
+
+This phase should later function as:
+
+```text
+a technical learning chapter
+```
+
+that can be re-read step-by-step like a networking and architecture book.
 
 ---
 
@@ -33,8 +40,22 @@ The system behaves more like a modern service infrastructure than a simple game 
 
 ---
 
-# 2. Main vSRO Componen
+# Suggested Visual — GlobalManager Console
+
+```md
 ![GlobalManager](screenshots/globalmanager.png)
+```
+
+Purpose:
+
+- visualize real packet communication
+- show certification traffic
+- show live service registration
+- show opcode exchange
+
+---
+
+# 2. Main vSRO Components
 
 ## CertificationServer
 
@@ -178,6 +199,32 @@ with:
 
 ---
 
+# Suggested Visual — Internal Service Flow
+
+```text
+Client
+   ↓
+GatewayServer
+   ↓
+GlobalManager
+   ↓
+FarmManager
+   ↓
+AgentServer
+   ↓
+SR_ShardManager
+   ↓
+SQL Server
+```
+
+Purpose:
+
+- visualize service hierarchy
+- explain request flow
+- explain gameplay routing
+
+---
+
 # 4. The Three Layers of vSRO
 
 Understanding vSRO requires separating three completely different types of information.
@@ -265,6 +312,38 @@ Examples include:
 - service registration
 - routing communication
 - live process coordination
+
+---
+
+# Suggested Visual — DB vs Runtime State
+
+```text
+SQL Database
+    ↓
+Persistent World Data
+    ↓
+Accounts
+Characters
+Items
+Guilds
+
+-------------------------
+
+Running Services
+    ↓
+Live Runtime State
+    ↓
+Connected Players
+Sessions
+Online Status
+Temporary Combat Data
+```
+
+Purpose:
+
+- explain SQL vs runtime difference
+- explain why DB is not the whole server
+- explain persistent vs temporary state
 
 ---
 
@@ -376,9 +455,11 @@ Sends identification data
     ↓
 Certification validation
     ↓
-Service registration
+Receives approval
     ↓
-Normal operation begins
+Registers itself
+    ↓
+Normal communication begins
 ```
 
 Without successful certification:
@@ -387,6 +468,20 @@ Without successful certification:
 - DMP files may appear
 - initialization fails
 - internal communication cannot start
+
+---
+
+# Suggested Visual — Certification Handshake
+
+```md
+![Certification Handshake](screenshots/Cmd.png)
+```
+
+Purpose:
+
+- show real certification packets
+- show live opcode traffic
+- show server registration behavior
 
 ---
 
@@ -412,9 +507,29 @@ Only AFTER this sequence does the service become operational.
 
 ---
 
-# 11. Understanding Packet Communication
+# Suggested Visual — Startup Flow
 
-![Certification Handshake](screenshots/Cmd.png)
+```text
+GlobalManager.exe
+        ↓
+Read Configurations
+        ↓
+Initialize TCP Networking
+        ↓
+Connect to CertificationServer
+        ↓
+Send Identification
+        ↓
+Receive Certification
+        ↓
+Register Service
+        ↓
+Operational State
+```
+
+---
+
+# 11. Understanding Packet Communication
 
 vSRO uses a proprietary packet-based protocol.
 
@@ -429,6 +544,26 @@ Opcode
   ↓
 Payload
 ```
+
+---
+
+# Suggested Visual — Packet Structure
+
+```text
+TCP Stream
+    ↓
+Packet Header
+    ↓
+Opcode
+    ↓
+Payload
+```
+
+Purpose:
+
+- explain packet layering
+- simplify reverse engineering concepts
+- visualize data flow
 
 ---
 
@@ -520,6 +655,28 @@ This explains why VMware, Hamachi, or VirtualBox adapters often cause problems i
 
 ---
 
+# Suggested Visual — Automatic IP Detection
+
+```text
+Windows Network Stack
+        ↓
+Ethernet Adapter
+VMware Adapter
+Loopback Adapter
+        ↓
+GlobalManager selects adapter
+        ↓
+Advertises local IP
+```
+
+Purpose:
+
+- explain dynamic IP selection
+- explain VMware IP confusion
+- explain why wrong adapters break servers
+
+---
+
 # 16. Difference Between Connect-To IP and Advertised IP
 
 This is an extremely important networking concept.
@@ -562,6 +719,28 @@ The service announces its own network identity.
 
 ---
 
+# Suggested Visual — Connect-To vs Advertised IP
+
+```text
+Connect-To IP:
+127.0.0.1:32000
+    ↓
+Target service address
+
+Advertised IP:
+192.168.122.198
+    ↓
+"My own reachable address"
+```
+
+Purpose:
+
+- explain localhost rewrites
+- explain internal addressing
+- explain routing confusion
+
+---
+
 # 17. Understanding Localhost Rewrites
 
 Many leaked vSRO configurations contain:
@@ -584,6 +763,28 @@ Certification "127.0.0.1", 32000
 ```
 
 This forces all services to communicate locally on the same machine.
+
+---
+
+# Suggested Visual — Broken vs Fixed Networking
+
+```text
+Broken Leak:
+GatewayServer → 25.x.x.x
+                 ↓
+          Connection Failure
+
+Fixed Localhost Setup:
+GatewayServer → 127.0.0.1
+                 ↓
+         Successful Local Communication
+```
+
+Purpose:
+
+- explain why many leaks fail
+- explain recovery logic
+- explain localhost fixes
 
 ---
 
@@ -692,6 +893,26 @@ Which FarmManager exists?
 ```
 
 The GlobalManager keeps track of this information dynamically.
+
+---
+
+# Suggested Visual — Service Discovery
+
+```text
+GatewayServer asks:
+"Where is AgentServer?"
+
+        ↓
+
+GlobalManager responds:
+"IP X / Port Y"
+```
+
+Purpose:
+
+- explain routing
+- explain service lookup
+- explain internal registry concepts
 
 ---
 
@@ -807,6 +1028,30 @@ If a required upstream service is unavailable:
 
 ---
 
+# Suggested Visual — Startup Dependency Chain
+
+```text
+CertificationServer
+        ↓
+GlobalManager
+        ↓
+MachineManager
+        ↓
+GatewayServer
+        ↓
+FarmManager
+        ↓
+AgentServer
+```
+
+Purpose:
+
+- explain startup dependencies
+- explain cascading failures
+- explain initialization order
+
+---
+
 # 26. Understanding GatewayServer
 
 The GatewayServer is the first contact point for the Silkroad client.
@@ -880,6 +1125,28 @@ Gameplay
 ```
 
 The client does NOT connect directly to the gameplay server initially.
+
+---
+
+# Suggested Visual — Client Connection Flow
+
+```text
+Silkroad Client
+        ↓
+GatewayServer
+        ↓
+GlobalManager
+        ↓
+AgentServer
+        ↓
+Game World
+```
+
+Purpose:
+
+- explain player routing
+- explain login flow
+- explain gameplay transition
 
 ---
 
@@ -976,6 +1243,28 @@ This happens BEFORE normal communication begins.
 
 ---
 
+# Suggested Visual — Handshake Logic
+
+```text
+GlobalManager
+      ↓
+"Hello CertServer"
+      ↓
+Identity Verification
+      ↓
+Certification Granted
+      ↓
+Normal Communication
+```
+
+Purpose:
+
+- explain trust establishment
+- explain startup communication
+- explain packet sequence
+
+---
+
 # 34. Why DMP Files Appear
 
 Old C++ servers often crash hard when initialization fails.
@@ -1007,6 +1296,26 @@ the crash happened BEFORE normal logging initialization
 ```
 
 This pointed toward early certification failure rather than database issues.
+
+---
+
+# Suggested Visual — Crash Chain
+
+```text
+Invalid Certification
+        ↓
+Initialization Failure
+        ↓
+Unhandled Exception
+        ↓
+.dmp File Creation
+```
+
+Purpose:
+
+- explain dump generation
+- explain startup crashes
+- explain early initialization failures
 
 ---
 
