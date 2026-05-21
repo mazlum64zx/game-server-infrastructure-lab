@@ -80,6 +80,8 @@ No major service can fully initialize without successful certification.
 ---
 
 ## GlobalManager
+<img width="1888" height="1483" alt="Screenshot 2026-05-21 124042" src="https://github.com/user-attachments/assets/22d15615-542d-4f37-9e12-8674fdeb5c53" />
+
 
 Executable:
 
