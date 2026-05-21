@@ -266,6 +266,7 @@ It is a collection of independent services communicating over:
 # Understanding SQL Connection Strings
 
 Inside the configuration files, the following SQL connection structure was discovered:
+<img width="373" height="224" alt="sql-account-daten" src="https://github.com/user-attachments/assets/cfa5f7b5-cda7-4d44-a1fa-9e0846e7be28" />
 
 ```ini
 query=DRIVER={SQL Server};SERVER=.\SQLEXPRESS;DSN=SRO_VT_ACCOUNT;UID=vsro;PWD=vsro;DATABASE=SRO_VT_ACCOUNT
@@ -279,6 +280,7 @@ This revealed:
 ---
 
 # Enabling SQL Authentication
+<img width="528" height="413" alt="sql-account-daten-eintragen-bei-ssms" src="https://github.com/user-attachments/assets/c4e9e17c-ff1e-4a67-85ec-6d249ba2ad05" />
 
 SQL Server was already configured with:
 
@@ -332,6 +334,7 @@ Without the dedicated SQL login:
 ---
 
 # Localhost Network Configuration
+<img width="473" height="417" alt="servicemanager-ip-change-localhost" src="https://github.com/user-attachments/assets/c736e350-740d-4d68-9e99-4524267824be" />
 
 The original server files contained external IP addresses such as:
 
@@ -353,6 +356,7 @@ nip=25.73.87.49
 ```
 
 For the local homelab environment, all external IPs were replaced with:
+<img width="472" height="417" alt="servicemanager-ip-change-localhost2" src="https://github.com/user-attachments/assets/d5f5bbc1-c189-478d-a1d2-e3c84d610ff0" />
 
 ```text
 127.0.0.1
