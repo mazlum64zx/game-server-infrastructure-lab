@@ -15,6 +15,7 @@ failed to request certification
 ```
 
 errors.
+<img width="568" height="424" alt="failedrequestcertif" src="https://github.com/user-attachments/assets/90b6bd7a-cbda-41fa-a72e-cdf9c8404440" />
 
 This phase documents the complete recovery process.
 
@@ -155,6 +156,7 @@ Example correction:
 node_id=1
 port=32000
 ```
+<img width="945" height="791" alt="finalfixport" src="https://github.com/user-attachments/assets/1d32cd1b-cb63-45b3-b5bb-7e659cc78273" />
 
 All active certification-related entries were aligned to `32000`.
 
@@ -205,6 +207,7 @@ Correct result:
 ```text
 Certification Server started on 127.0.0.1:32000
 ```
+<img width="821" height="620" alt="finalport32000" src="https://github.com/user-attachments/assets/b9c2695a-7571-43f7-82b7-b182ba03c830" />
 
 ---
 
@@ -241,6 +244,7 @@ GlobalManager {
     Certification "25.73.87.49", 24173
 }
 ```
+<img width="1400" height="1169" alt="Screenshot 2026-05-21 121935" src="https://github.com/user-attachments/assets/e21fe569-5f50-4c06-847d-780911b51470" />
 
 Problems:
 - wrong IP
@@ -258,6 +262,7 @@ GlobalManager {
     Certification "127.0.0.1", 32000
 }
 ```
+<img width="1165" height="728" alt="Screenshot 2026-05-21 122336" src="https://github.com/user-attachments/assets/d1fa5836-ec7c-46a5-8d37-c8afb9fc7975" />
 
 Only the `GlobalManager` block was modified initially.
 
@@ -290,6 +295,7 @@ CustomCertificationServer.exe packt.dat
 ```text
 GlobalManager.exe
 ```
+<img width="1639" height="1352" alt="Screenshot 2026-05-21 122616" src="https://github.com/user-attachments/assets/02327bbd-261d-4896-85e1-4f02d2496920" />
 
 ---
 
