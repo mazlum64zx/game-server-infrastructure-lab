@@ -414,6 +414,8 @@ Only AFTER this sequence does the service become operational.
 
 # 11. Understanding Packet Communication
 
+![Certification Handshake](screenshots/Cmd.png)
+
 vSRO uses a proprietary packet-based protocol.
 
 Communication roughly follows:
