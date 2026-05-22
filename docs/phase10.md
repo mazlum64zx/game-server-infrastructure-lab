@@ -58,6 +58,7 @@ The GlobalManager displayed errors such as:
 ```text
 cannot certify server body : [MachineManager][25.73.87.49]
 ```
+<img width="827" height="582" alt="Screenshot 2026-05-21 211201" src="https://github.com/user-attachments/assets/cf17d945-1936-477a-adb6-f1203361f21c" />
 
 or later:
 
@@ -158,6 +159,7 @@ Command:
 ```cmd
 tasklist | findstr Manager
 ```
+<img width="715" height="638" alt="Screenshot 2026-05-21 204324" src="https://github.com/user-attachments/assets/db8c0171-6ce6-4570-9867-da6ece2c9edf" />
 
 Purpose:
 - lists all running Windows processes
@@ -204,6 +206,7 @@ Another critical debugging tool was:
 ```cmd
 netstat -ano
 ```
+<img width="749" height="671" alt="Screenshot 2026-05-21 204022" src="https://github.com/user-attachments/assets/624a5996-ba62-4ddf-af8c-8285a321b85d" />
 
 Purpose:
 - verify listening ports
@@ -236,6 +239,7 @@ Purpose:
 ```cmd
 netstat -ano | findstr 24523
 ```
+<img width="715" height="638" alt="Screenshot 2026-05-21 204324" src="https://github.com/user-attachments/assets/14be5540-a0a7-483c-8f81-2b7c2ed63dbc" />
 
 Purpose:
 - verify SR_GameServer or AgentServer ports
@@ -280,6 +284,7 @@ A major breakthrough came from using:
 ```cmd
 findstr /S /M "25.73.87.49" *.*
 ```
+<img width="842" height="653" alt="Screenshot 2026-05-21 214754" src="https://github.com/user-attachments/assets/d50bbfd2-0d64-48aa-ae8c-a36886c317e2" />
 
 Explanation:
 
@@ -348,6 +353,7 @@ Command:
 ```cmd
 Convert.exe ini ini dat packt.dat
 ```
+<img width="550" height="155" alt="Screenshot 2026-05-21 212840" src="https://github.com/user-attachments/assets/6ccf1963-66f5-4a52-b1c3-f67424b5f158" />
 
 Purpose:
 - rebuild runtime certification data
@@ -409,6 +415,7 @@ CustomCertificationServer.exe packt.dat
 Purpose:
 - start CertificationServer
 - load packt.dat as certification database
+<img width="662" height="113" alt="image" src="https://github.com/user-attachments/assets/73b16782-57e5-4302-a040-19056a66921c" />
 
 Expected output:
 
@@ -435,6 +442,7 @@ Later, after replacing the executable with another version:
 ```text
 MachineManager[192.168.1.121]
 ```
+<img width="1531" height="1289" alt="Screenshot 2026-05-21 223518" src="https://github.com/user-attachments/assets/1e11fc55-1533-435f-9973-6cb4aa7298fb" />
 
 This proved:
 
@@ -455,6 +463,7 @@ still contained:
 # 10. Why Simple Hex Editing Was Dangerous
 
 At first, HxD hex editing was considered.
+<img width="1475" height="904" alt="Screenshot 2026-05-21 221600" src="https://github.com/user-attachments/assets/de18e2d5-365f-4caa-82d5-04a1cacf5bdc" />
 
 However:
 
@@ -566,6 +575,7 @@ while preserving:
 # 13. Creating an Isolated libvirt Network
 
 A new isolated libvirt network was created.
+<img width="613" height="23" alt="Screenshot 2026-05-22 003850" src="https://github.com/user-attachments/assets/1ff3cdaf-a773-4561-9270-0c6fba7d18e1" />
 
 Command:
 
@@ -579,6 +589,7 @@ Purpose:
 ---
 
 Network XML:
+<img width="803" height="199" alt="Screenshot 2026-05-22 003906" src="https://github.com/user-attachments/assets/393f8f9a-db4f-4c43-8b4f-01b13dabf951" />
 
 ```xml
 <network>
@@ -648,6 +659,7 @@ exit nano.
 ---
 
 # 14. Registering the New libvirt Network
+<img width="833" height="392" alt="Screenshot 2026-05-22 003926" src="https://github.com/user-attachments/assets/64fe4774-cf8f-47bf-81cb-09220c69e5a5" />
 
 Command:
 
@@ -687,6 +699,7 @@ Command:
 ```bash
 virsh net-list --all
 ```
+<img width="803" height="177" alt="Screenshot 2026-05-22 003945" src="https://github.com/user-attachments/assets/b36abb0e-5972-4588-ba82-0d60a62e1c39" />
 
 Purpose:
 - display all libvirt networks and their status
@@ -702,6 +715,7 @@ vsroisolated active
 # 15. Attaching a Second Virtual NIC to the VM
 
 Command:
+<img width="1662" height="111" alt="Screenshot 2026-05-22 004020" src="https://github.com/user-attachments/assets/12cd6642-5559-4c4e-8d52-0f4f93fc531c" />
 
 ```bash
 virsh attach-interface \
@@ -794,12 +808,14 @@ After attaching the second NIC, Windows displayed:
 - Ethernet
 - Ethernet 2
 - Ethernet 3
+<img width="1426" height="1124" alt="Screenshot 2026-05-22 004135" src="https://github.com/user-attachments/assets/7a4920de-908c-41f6-a06c-4718170390ad" />
 
 The accidental extra adapter was disabled.
 
 ---
 
 ## Ethernet
+
 
 Purpose:
 
@@ -869,6 +885,7 @@ Command:
 ```cmd
 ipconfig
 ```
+<img width="1235" height="741" alt="Screenshot 2026-05-22 004426" src="https://github.com/user-attachments/assets/84be0d2d-e27a-443b-8c24-49b77996f9e0" />
 
 Purpose:
 - display all active Windows network adapters and IP addresses
@@ -916,6 +933,7 @@ Expected GlobalManager output:
 Certification request from:
 MachineManager[192.168.1.121]
 ```
+<img width="1758" height="732" alt="Screenshot 2026-05-22 004614" src="https://github.com/user-attachments/assets/c98a15e9-7ebf-443d-be06-1b91bc6210fd" />
 
 This proved:
 
